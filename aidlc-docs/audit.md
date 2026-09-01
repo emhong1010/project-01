@@ -375,3 +375,20 @@
 **Context**: OPERATIONS - 배포 준비 완료
 
 ---
+
+## OPERATIONS - GitHub 푸시 완료
+**Timestamp**: 2026-09-01T05:45:00Z
+**User Input**: "https://github.com/emhong1010/project-01.git : git 주소"
+**AI Response**: git init → 전체 스테이징(node_modules/dist/public/data 제외, 159 파일) → 커밋(d6fe555) → 브랜치 main → origin 연결 → git push -u origin main 성공. 원격 main이 d6fe555 가리킴 확인.
+**Context**: OPERATIONS - 소스 GitHub 업로드 완료. 다음: 사용자가 Render Blueprint 연결.
+
+---
+
+## OPERATIONS - Render 빌드 실패 진단 및 수정
+**Timestamp**: 2026-09-01T06:00:00Z
+**User Input**: (Render 빌드 실패 로그 스크린샷) "npm error command sh -c vite build / Build failed"
+**진단**: 격리 환경 재현(git archive → 임시디렉터리, v1/shared-core에 node_modules 없이 v2-server만 install)으로 실제 원인 확인 — Rollup이 v1-web-serverless/src/xlsxAdapter.ts의 import 'xlsx'를 해석 실패. 로컬 성공은 v1 node_modules 잔존 때문이었음(false negative).
+**수정**: v2-server/vite.config.ts에 resolve.alias로 xlsx를 v2-server가 설치한 패키지(require.resolve)로 고정. render.yaml은 rootDir 제거하고 buildCommand/startCommand에서 'cd v2-server' 방식으로 변경.
+**검증**: 격리 재현 환경에서 npm install(postinstall vite build) 성공→public/ 생성, PORT 기동, GET/ 200, POST /api/process 200. v2 테스트 6/6 통과.
+**푸시**: 커밋 af5af33 → origin/main. Render autoDeploy로 재배포 트리거 예상.
+**Context**: OPERATIONS - 배포 빌드 수정 완료
