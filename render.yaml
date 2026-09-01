@@ -1,14 +1,14 @@
 # Render Blueprint — v2-server 무료 웹 서비스 배포 설정
-# 이 파일은 저장소 루트에 위치합니다. Render 대시보드에서 "New +" > "Blueprint"로 이 저장소를 선택하면 자동 인식됩니다.
+# 저장소 루트에 위치. rootDir을 루트로 두어 v2-server가 형제 폴더
+# (shared-core, v1-web-serverless)를 상대경로로 참조할 수 있게 함.
 services:
   - type: web
     name: pandokmun-followup-v2
     runtime: node
     plan: free
-    rootDir: v2-server
-    # 의존성 설치(postinstall에서 클라이언트 vite build 자동 실행)
-    buildCommand: npm install
-    startCommand: npm start
+    # rootDir 미지정(=저장소 루트). 빌드/시작 시 v2-server 디렉터리로 진입.
+    buildCommand: cd v2-server && npm install
+    startCommand: cd v2-server && npm start
     autoDeploy: true
     envVars:
       - key: NODE_VERSION
