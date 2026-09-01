@@ -1,0 +1,16 @@
+# Render Blueprint — v2-server 무료 웹 서비스 배포 설정
+# 이 파일은 저장소 루트에 위치합니다. Render 대시보드에서 "New +" > "Blueprint"로 이 저장소를 선택하면 자동 인식됩니다.
+services:
+  - type: web
+    name: pandokmun-followup-v2
+    runtime: node
+    plan: free
+    rootDir: v2-server
+    # 의존성 설치(postinstall에서 클라이언트 vite build 자동 실행)
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      # PORT는 Render가 자동 주입 → 서버가 process.env.PORT 사용

@@ -1,0 +1,27 @@
+{
+  "name": "v2-server",
+  "version": "1.0.0",
+  "description": "판독문 추적관찰 도구 V2 (Node+TS 서버, JSON 저장, 다중 사용자 공유)",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "build": "vite build",
+    "build:client": "vite build",
+    "postinstall": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "tsx": "^4.19.2",
+    "vite": "^5.4.10",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "typescript": "^5.6.3"
+  }
+}
