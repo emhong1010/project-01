@@ -1,12 +1,18 @@
-# Render Blueprint — v2-server 무료 웹 서비스 배포 설정
-# 저장소 루트에 위치. rootDir을 루트로 두어 v2-server가 형제 폴더
-# (shared-core, v1-web-serverless)를 상대경로로 참조할 수 있게 함.
+# Render Blueprint — 판독문 추적관찰 도구 (V1 정적 사이트 + V2 웹 서비스)
+# 저장소 루트에 위치. Blueprint 연결 시 두 서비스가 함께 생성됩니다.
 services:
+  # V1: 서버리스 정적 웹앱 (Static Site, 무료, 슬립 없음)
+  - type: web
+    name: pandokmun-followup-v1
+    runtime: static
+    buildCommand: cd v1-web-serverless && npm install && npm run build
+    staticPublishPath: v1-web-serverless/dist
+
+  # V2: Node 서버 + JSON 저장(다중 사용자 공유). 무료 웹 서비스.
   - type: web
     name: pandokmun-followup-v2
     runtime: node
     plan: free
-    # rootDir 미지정(=저장소 루트). 빌드/시작 시 v2-server 디렉터리로 진입.
     buildCommand: cd v2-server && npm install
     startCommand: cd v2-server && npm start
     autoDeploy: true
