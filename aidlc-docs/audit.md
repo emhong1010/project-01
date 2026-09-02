@@ -392,3 +392,12 @@
 **검증**: 격리 재현 환경에서 npm install(postinstall vite build) 성공→public/ 생성, PORT 기동, GET/ 200, POST /api/process 200. v2 테스트 6/6 통과.
 **푸시**: 커밋 af5af33 → origin/main. Render autoDeploy로 재배포 트리거 예상.
 **Context**: OPERATIONS - 배포 빌드 수정 완료
+
+## OPERATIONS - V1+V2 함께 배포 설정
+**Timestamp**: 2026-09-01T06:20:00Z
+**User Input**: "v1, v2 모두 웹에 띄워줘"
+**AI Response**: render.yaml에 서비스 2개 정의 — V1(runtime:static, build: cd v1-web-serverless && npm install && npm run build, publish: v1-web-serverless/dist) + V2(node, 기존). V1 rewrite 라우트는 단일페이지라 제거.
+**검증(격리 재현)**: git archive → 임시디렉터리, 각 유닛 폴더만 clean install. V1: npm install+build 성공→dist 생성, 정적 서빙 GET/ 200, 에셋 200. (V2는 이전 커밋서 검증됨)
+**푸시**: 커밋 373ca96 → origin/main. deploy-render-guide.md를 V1+V2 통합본으로 갱신.
+**한계**: 실제 서비스 생성/URL 발급은 사용자 Render 계정에서 Blueprint Apply 필요.
+**Context**: OPERATIONS - V1+V2 배포 설정 완료

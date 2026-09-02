@@ -1,56 +1,39 @@
-# V2 서버 무료 배포 가이드 (Render)
+# 무료 배포 가이드 (Render) — V1 + V2 함께
 
-대상: `v2-server` (Node + TS). 플랫폼: **Render 무료 웹 서비스**.
-이 가이드는 사용자님의 Render/GitHub 계정으로 직접 진행합니다(에이전트가 대신 로그인/생성 불가).
+저장소 루트의 `render.yaml`에 **두 서비스**가 정의되어 있습니다. Blueprint 한 번으로 함께 배포됩니다.
 
-## 사전 준비 (코드 측 — 이미 완료됨)
-- `v2-server/package.json`: `start` = `tsx src/server.ts`, `postinstall`에서 클라이언트 자동 빌드, tsx/vite가 dependencies에 포함.
-- `src/server.ts`: `process.env.PORT` 사용 + `0.0.0.0` 바인딩 (Render 호환).
-- 저장소 루트 `render.yaml`: 무료 웹 서비스 정의(rootDir=v2-server).
-- `.gitignore`: node_modules/dist/public/data 제외.
-- 검증 완료: 프로덕션 방식(NODE_ENV=production) 설치 후 서버 기동·정적·API 응답 200 확인.
+| 서비스 | 종류 | 이름 | 특징 |
+|---|---|---|---|
+| V1 | Static Site | pandokmun-followup-v1 | 서버 없음, 슬립 없음, 브라우저 localStorage 저장 |
+| V2 | Web Service (Node) | pandokmun-followup-v2 | 서버+JSON 저장(공유), 무료라 15분 슬립 |
 
-## 방법 A: Blueprint(render.yaml) — 권장
-1. 이 프로젝트를 GitHub 저장소에 푸시합니다.
-   ```bash
-   cd "<프로젝트 루트>"
-   git init            # 이미 git이면 생략
-   git add .
-   git commit -m "판독문 추적관찰 도구: V2 배포 설정 추가"
-   git branch -M main
-   git remote add origin https://github.com/<사용자>/<저장소>.git
-   git push -u origin main
-   ```
-2. https://dashboard.render.com 접속 → 회원가입/로그인(무료, 카드 불필요).
-3. **New +** → **Blueprint** 선택 → 방금 푸시한 GitHub 저장소 연결.
-4. Render가 루트의 `render.yaml`을 인식 → 서비스 `pandokmun-followup-v2` 확인 후 **Apply**.
-5. 빌드 로그에서 `npm install`(→ postinstall이 vite build) → `npm start` 순으로 진행되는지 확인.
-6. 배포 완료 후 발급된 URL(`https://<서비스명>.onrender.com`) 접속.
+## 배포 준비 (완료된 상태)
+- `render.yaml`: V1(static, `v1-web-serverless/dist` 퍼블리시) + V2(node, `cd v2-server && npm start`).
+- V1: `xlsx`를 자체 dependencies로 보유, shared-core는 상대경로 소스로 번들 → 격리 빌드 성공 검증됨.
+- V2: vite `resolve.alias`로 `xlsx`를 v2-server 패키지로 고정 → 격리 빌드 성공 검증됨.
+- 두 서비스 모두 clean 환경(Render 재현)에서 빌드→서빙 200 확인 완료.
 
-## 방법 B: 대시보드 수동 설정 (render.yaml 없이)
-1. GitHub 푸시(위 1번).
-2. **New +** → **Web Service** → 저장소 선택.
-3. 설정:
-   - **Root Directory**: `v2-server`
-   - **Runtime**: Node
-   - **Build Command**: `npm install`
-   - **Start Command**: `npm start`
-   - **Instance Type**: Free
-4. **Create Web Service** → 배포 대기 → URL 접속.
+## 배포 절차 (Blueprint, 권장)
+1. 코드가 이미 GitHub(`emhong1010/project-01`, main)에 푸시되어 있습니다.
+2. https://dashboard.render.com 로그인.
+3. **New +** → **Blueprint** → 저장소 `emhong1010/project-01` 선택.
+4. Render가 `render.yaml`을 읽어 **서비스 2개**(V1 static, V2 web)를 보여줍니다 → **Apply**.
+5. 각각 빌드 로그 확인:
+   - V1: `cd v1-web-serverless && npm install && npm run build` → `dist/` 퍼블리시.
+   - V2: `cd v2-server && npm install`(postinstall이 클라이언트 빌드) → `npm start`.
+6. 발급 URL:
+   - V1: `https://pandokmun-followup-v1.onrender.com` (또는 대시보드 표시 URL)
+   - V2: `https://pandokmun-followup-v2.onrender.com`
 
-## 사용 확인
-1. 발급된 URL 접속 → 이름/진료과 입력 후 "시작".
-2. **가상 예시 데이터** `sample-data/clinical_notes.csv`를 업로드(로컬 파일에서 선택).
-3. 과별 대시보드·표 확인, 진행 상태 변경 확인.
+## 사용
+- **V1**: URL 접속 → `sample-data/clinical_notes.csv` 업로드 → 과별 대시보드/표, 진행 상태(브라우저 저장).
+- **V2**: URL 접속 → 이름/과 입력 → 같은 CSV 업로드 → 진행 상태가 서버에 저장(공유). 첫 접속은 슬립 해제로 ~1분 걸릴 수 있음.
 
-## 무료 티어 주의사항
-- **슬립**: 15분간 요청이 없으면 서비스가 잠들고, 다음 접속 시 ~1분 콜드 스타트. (데모엔 무방)
-- **파일 비영속**: 무료엔 영속 디스크가 없어 재배포/재시작 시 `data/status.json`(진행 상태)이 초기화됩니다. 지속 공유가 필요하면 무료 외부 DB(예: Upstash Redis, Neon Postgres) 연동으로 `StatusRepository`를 교체해야 합니다. 저장 방식이 Repository 계층에 격리돼 있어 어댑터 1개 추가로 확장 가능합니다.
-- **월 750 인스턴스 시간** 제공.
+## 주의
+- 무료 V2는 15분 미사용 시 슬립, 재시작 시 `data/status.json`(진행 상태) 초기화(무료 비영속). V1은 슬립 없음(정적).
+- 공개 URL은 인증 없음 → **가상 예시 데이터로만** 사용. 실제 환자 판독문 금지.
 
-## 보안 주의 (중요)
-- 공개 URL은 인증이 없어 누구나 접근합니다. **반드시 가상 예시 데이터로만** 사용하세요.
-- 실제 환자 판독문(민감 정보/PII)은 공개 배포에 부적합합니다. 실운영은 접근 제어·보안 검토·영속 저장을 갖춘 별도 환경에서 진행하세요.
-
-## 참고 출처 (요약, 라이선스 준수를 위해 재구성)
-- Render 무료 웹 서비스는 15분 미사용 시 스핀다운되고 다음 요청에 다시 기동됨. 무료엔 영속 디스크가 없어 재시작 시 로컬 파일 변경분이 사라짐. (render.com/free, render.com/docs/disks)
+## 개별 배포(선택)
+Blueprint 대신 하나씩 만들려면:
+- V1: New + → **Static Site** → Root `v1-web-serverless`, Build `npm install && npm run build`, Publish `dist`.
+- V2: New + → **Web Service** → Root `v2-server`, Build `npm install`, Start `npm start`.
